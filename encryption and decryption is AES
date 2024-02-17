@@ -1,20 +1,17 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import tkinter
 from cryptography.fernet import Fernet
+
+def popup_en():
+    messagebox.showinfo("info", "Encrypted")
+
+def popup_de():
+    messagebox.showinfo("info", "Decrypted")
 
 def generate_key():
     key = Fernet.generate_key()
-    with open("secret.key", "wb") as key_file:
-        key_file.write(key)
     key_label.config(text="Generated Key: " + key.decode('utf-8'))
-
-def open_key():
-    try:
-        with open("secret.key", "rb") as key_file:
-            return key_file.read()
-    except FileNotFoundError:
-        messagebox.showerror("Error", "Key file not found. Please generate the key first.")
+    return key
 
 def open_text():
     try:
@@ -25,41 +22,39 @@ def open_text():
     except FileNotFoundError:
         messagebox.showerror("Error", "File not found.")
 
-def encrypt(plain_text):
-    key = open_key()
+def encrypt(plain_text, key):
     cipher = Fernet(key)
     return cipher.encrypt(plain_text.encode('utf-8'))
 
-def decrypt(cipher_text):
-    key = open_key()
+def decrypt(cipher_text, key):
     cipher = Fernet(key)
     return cipher.decrypt(cipher_text).decode('utf-8')
 
 def choice():
     operation = v.get()
     if operation == 1:  # Encryption
-        generate_key_button.config(state=tk.NORMAL)  # Enable "Generate Key" button for encryption
         encryption()
     elif operation == 2:  # Decryption
-        generate_key_button.config(state=tk.DISABLED)  # Disable "Generate Key" button for decryption
         decryption()
 
 def encryption():
-    plain_text = plain_txt.get("1.0", tk.END).strip()  
-    cipher_text = encrypt(plain_text)
+    plain_text = plain_txt.get("1.0", tk.END).strip()
+    key = generate_key()
+    cipher_text = encrypt(plain_text, key)
     result_label.config(state="normal")
     result_label.delete("1.0", tk.END)
     result_label.insert(tk.END, cipher_text)
     result_label.config(state="disabled")
-
+    popup_de()
 def decryption():
-    cipher_text = plain_txt.get("1.0", tk.END).strip()  # Get text from Text widget
-    plain_text = decrypt(cipher_text)
+    cipher_text = plain_txt.get("1.0", tk.END).strip()
+    key = key_label.cget("text").split(": ")[1]  # Extract the key from the label
+    plain_text = decrypt(cipher_text, key)
     result_label.config(state="normal")
     result_label.delete("1.0", tk.END)
     result_label.insert(tk.END, plain_text)
     result_label.config(state="disabled")
-
+    popup_de()
 def copy_result():
     result = result_label.get("1.0", tk.END).strip()
     if result:
@@ -72,7 +67,9 @@ def reset():
     result_label.config(state="normal")
     result_label.delete("1.0", tk.END)
     result_label.config(state="disabled")
-    tkinter.messagebox.showinfo("Notify", "Cleared.")
+    label_file_explorer.config(text="")
+    key_label.config(text="")
+    messagebox.showinfo("Notify", "Cleared.")
 
 root = tk.Tk()
 root.title("Encryption and Decryption")
@@ -84,7 +81,6 @@ root.resizable(False, False)
 label = tk.Label(root, text="Enter the Text or choose File", width=20, bg="MediumPurple1")
 label.pack(pady=10)
 
-# Label to display the opened file path
 label_file_explorer = tk.Label(root, text="", width=60, bg="light blue")
 label_file_explorer.pack(pady=5)
 
@@ -104,19 +100,16 @@ label5.pack(padx=4, pady=5)
 label6 = tk.Radiobutton(root, text="Decryption", padx=20, variable=v, value=2, command=choice, bg="light yellow")
 label6.pack(padx=4, pady=5)
 
-label7 = tk.Label(root, text="Generated Key:", width=20, bg="MediumPurple1")
-label7.pack(pady=5)
-
 key_label = tk.Label(root, text="", bg="light yellow")
 key_label.pack(pady=5)
+
+label7 = tk.Label(root, text="Result:", width=20, bg="MediumPurple1")
+label7.pack(pady=5)
 
 result_label = tk.Text(root, width=50, height=1, state="disabled", bg="light yellow")
 result_label.pack(pady=5)
 
-reset_button = tk.Button(root, text="Reset", command=reset)
+reset_button = tk.Button(root, text="Reset", command=reset, bg="salmon")
 reset_button.pack(pady=5)
-
-generate_key_button = tk.Button(root, text="Generate Key", command=generate_key, state=tk.DISABLED)
-generate_key_button.pack(pady=5)
 
 root.mainloop()
