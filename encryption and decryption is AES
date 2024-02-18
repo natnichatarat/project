@@ -69,6 +69,7 @@ def reset():
     result_label.config(state="disabled")
     label_file_explorer.config(text="")
     key_label.config(text="")
+    v.set(0)
     messagebox.showinfo("Notify", "Cleared.")
 
 root = tk.Tk()
